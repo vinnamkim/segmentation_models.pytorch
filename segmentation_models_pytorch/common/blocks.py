@@ -1,9 +1,15 @@
 import torch.nn as nn
 
+class ZeroCenter(nn.module):
+    def __init__(self):
+        super().__init__()
+    def forward(self, x):
+        """x : [B, C, H, W]"""
+        return x - x.flatten(1).mean(1, keepdim=True).unsqueeze(-1).unsqueeze(-1)
 
 class Conv2dReLU(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, padding=0,
-                 stride=1, use_batchnorm=True, **batchnorm_params):
+                 stride=1, use_batchnorm=True, center='before', **batchnorm_params):
 
         super().__init__()
 
@@ -26,8 +32,17 @@ class Conv2dReLU(nn.Module):
             
             layers.append(InPlaceABN(out_channels, activation='leaky_relu', activation_param=0.0, **batchnorm_params))
         elif use_batchnorm:
-            layers.append(nn.BatchNorm2d(out_channels, **batchnorm_params))
-            layers.append(nn.ReLU(inplace=True))  
+            if center == 'before':
+                layers.append(ZeroCenter())
+                layers.append(nn.ReLU(inplace=True))
+                layers.append(nn.BatchNorm2d(out_channels, **batchnorm_params))
+            elif center == 'after':
+                layers.append(nn.BatchNorm2d(out_channels, **batchnorm_params))
+                layers.append(nn.ReLU(inplace=True))
+                layers.append(ZeroCenter())
+            else:
+                layers.append(nn.BatchNorm2d(out_channels, **batchnorm_params))
+                layers.append(nn.ReLU(inplace=True))
         else:
             layers.append(nn.ReLU(inplace=True))
                 
