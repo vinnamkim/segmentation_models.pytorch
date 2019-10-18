@@ -5,7 +5,7 @@ class ZeroCenter(nn.Module):
         super().__init__()
     def forward(self, x):
         """x : [B, C, H, W]"""
-        return x - x.flatten(1).mean(1, keepdim=True).unsqueeze(-1).unsqueeze(-1)
+        return x.sub_(x.flatten(1).mean(1, keepdim=True).unsqueeze(-1).unsqueeze(-1))
 
 class Conv2dReLU(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, padding=0,
