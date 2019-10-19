@@ -37,7 +37,8 @@ class Unet(EncoderDecoder):
             classes=1,
             activation='sigmoid',
             center=False,  # usefull for VGG models
-            attention_type=None
+            attention_type=None,
+            zerocenter='before'
     ):
         encoder = get_encoder(
             encoder_name,
@@ -45,12 +46,13 @@ class Unet(EncoderDecoder):
         )
 
         decoder = UnetDecoder(
+            zerocenter=zerocenter,
             encoder_channels=encoder.out_shapes,
             decoder_channels=decoder_channels,
             final_channels=classes,
             use_batchnorm=decoder_use_batchnorm,
             center=center,
-            attention_type=attention_type
+            attention_type=attention_type,
         )
 
         super().__init__(encoder, decoder, activation)
