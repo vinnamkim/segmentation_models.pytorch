@@ -38,7 +38,7 @@ class Conv2dReLU(nn.Module):
                 layers.append(nn.BatchNorm2d(out_channels, **batchnorm_params))
             elif center == 'after':
                 layers.append(nn.BatchNorm2d(out_channels, **batchnorm_params))
-                layers.append(nn.ReLU(inplace=True))
+                layers.append(nn.ReLU(inplace=False))
                 layers.append(ZeroCenter())
             else:
                 layers.append(nn.BatchNorm2d(out_channels, **batchnorm_params))

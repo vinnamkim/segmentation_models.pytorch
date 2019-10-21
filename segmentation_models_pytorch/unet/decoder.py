@@ -55,7 +55,7 @@ class UnetDecoder(Model):
 
         if center:
             channels = encoder_channels[0]
-            self.center = CenterBlock(channels, channels, use_batchnorm=use_batchnorm)
+            self.center = CenterBlock(channels, channels, zerocenter, use_batchnorm=use_batchnorm)
         else:
             self.center = None
 
