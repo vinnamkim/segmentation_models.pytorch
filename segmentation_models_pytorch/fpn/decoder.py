@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ..base.model import Model
-
+from ..common.blocks import ZeroCenter
 
 class Conv3x3GNReLU(nn.Module):
     def __init__(self, in_channels, out_channels, upsample=False):
@@ -14,7 +14,8 @@ class Conv3x3GNReLU(nn.Module):
             nn.Conv2d(in_channels, out_channels, (3, 3),
                               stride=1, padding=1, bias=False),
             nn.GroupNorm(32, out_channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(inplace=False),
+            ZeroCenter()
         )
 
     def forward(self, x):
