@@ -7,6 +7,18 @@ class ZeroCenter(nn.Module):
         """x : [B, C, H, W]"""
         return x.sub_(x.flatten(1).mean(1, keepdim=True).unsqueeze(-1).unsqueeze(-1))
 
+EPS = 1e-5
+
+class ZeroNorm(nn.Module):
+    def __init__(self):
+        super().__init__()
+    def forward(self, x):
+        """x : [B, C, H, W]"""
+        """x_mean : [B, 1, 1, 1]"""
+        mean = x.flatten(1).mean(1, keepdim=True).unsqueeze(-1).unsqueeze(-1)
+        std = x.flatten(1).std(1, keepdim=True).unsqueeze(-1).unsqueeze(-1)
+        return (x - mean) / (std + EPS)
+
 class Conv2dReLU(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, padding=0,
                  stride=1, use_batchnorm=True, center='before', **batchnorm_params):
@@ -40,6 +52,10 @@ class Conv2dReLU(nn.Module):
                 layers.append(nn.BatchNorm2d(out_channels, **batchnorm_params))
                 layers.append(nn.ReLU(inplace=False))
                 layers.append(ZeroCenter())
+            elif center == 'norm':
+                layers.append(nn.BatchNorm2d(out_channels, **batchnorm_params))
+                layers.append(nn.ReLU(inplace=True))
+                layers.append(ZeroNorm())
             else:
                 layers.append(nn.BatchNorm2d(out_channels, **batchnorm_params))
                 layers.append(nn.ReLU(inplace=True))
