@@ -12,13 +12,13 @@ def _upsample(x, size):
 
 class PyramidStage(nn.Module):
 
-    def __init__(self, in_channels, out_channels, pool_size, use_bathcnorm=True):
+    def __init__(self, in_channels, out_channels, pool_size, use_bathcnorm=True, zerocenter=None):
         super().__init__()
         if pool_size == 1:
             use_bathcnorm = False
         self.pool = nn.Sequential(
             nn.AdaptiveAvgPool2d(output_size=(pool_size, pool_size)),
-            Conv2dReLU(in_channels, out_channels, (1, 1), use_batchnorm=use_bathcnorm)
+            Conv2dReLU(in_channels, out_channels, (1, 1), use_batchnorm=use_bathcnorm, center=zerocenter)
         )
 
     def forward(self, x):
@@ -29,11 +29,12 @@ class PyramidStage(nn.Module):
 
 
 class PSPModule(nn.Module):
-    def __init__(self, in_channels, sizes=(1, 2, 3, 6), use_bathcnorm=True):
+    def __init__(self, in_channels, sizes=(1, 2, 3, 6), use_bathcnorm=True, zerocenter=None):
         super().__init__()
 
         self.stages = nn.ModuleList([
-            PyramidStage(in_channels, in_channels // len(sizes), size, use_bathcnorm=use_bathcnorm) for size in sizes
+            PyramidStage(in_channels, in_channels // len(sizes), size, 
+                use_bathcnorm=use_bathcnorm, zerocenter=zerocenter) for size in sizes
         ])
 
     def forward(self, x):
@@ -65,6 +66,7 @@ class PSPDecoder(Model):
             final_channels=21,
             aux_output=False,
             dropout=0.2,
+            zerocenter=None
     ):
         super().__init__()
         self.downsample_factor = downsample_factor
@@ -76,6 +78,7 @@ class PSPDecoder(Model):
             self.out_channels,
             sizes=(1, 2, 3, 6),
             use_bathcnorm=use_batchnorm,
+            zerocenter=zerocenter
         )
 
         self.conv = Conv2dReLU(
@@ -83,6 +86,7 @@ class PSPDecoder(Model):
             psp_out_channels,
             kernel_size=1,
             use_batchnorm=use_batchnorm,
+            center=zerocenter
         )
 
         if self.dropout_factor:
